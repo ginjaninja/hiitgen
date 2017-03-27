@@ -10,6 +10,8 @@
 		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
 		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
 		
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/bootbox.js/4.4.0/bootbox.js"></script>
+		
 		<script src="low.js"></script>
 		<script src="med.js"></script>
 		<script src="high.js"></script>
@@ -17,11 +19,16 @@
 		
 		<script>
 		$(document).ready(function(){
+			var stCounter, stCounterVal = 12, timeout, ex;
+			
 			$('.workoutLength').hide();
+			$('.start').hide();
+			
 			$('.calc').click(function(){
 				$('.workoutLength').show();
+				$('.start').show();
 				$('.time').text(calcTime($('#numExercises').val(), $('#numSets').val()));	
-				var ex = getExercises($('#numExercises').val(), $('#numSets').val());
+				ex = getExercises($('#numExercises').val(), $('#numSets').val());
 				$(ex).each(function(i, r){
 					$(r).each(function(j, e){
 						$('.hiitList').append('<li class="list-group-item">'+ e +'</li>');
@@ -31,33 +38,60 @@
 			});
 			
 			$('.start').click(function(){
-				//TODO 10 second starting countdown
-				//TODO countdown 20 secs of activity and highlight exercise
-				//TODO no highlight while countdown 10 secs of rest
+				//10 second starting countdown
+				var box = bootbox.alert({
+					message: "Get Ready",
+					closeButton: false,
+					onEscape: false
+					});
+				startCounter= setInterval(function(){
+					stCounterVal--;
+					if(stCounterVal < 11){
+						$('.modal-body').text(stCounterVal);
+					}
+					if(stCounterVal == 0){
+						box.modal('hide');
+						clearInterval(startCounter);
+					}
+				}, 1000);
+					
+				$(ex).each(function(i, e){
+					//TODO highlight exercise
+					
+					//TODO countdown 20 secs of activity 
+					
+					//TODO no highlight while countdown 10 secs of rest
+				});
+				
 			});
 		});
 		</script>
+		
+		<style>
+			.modal-footer{display:none;}
+			.modal-body{text-align: center; font-size: 3em;}
+		</style>
 	</head>
 	<body>
-		<div class="container-fluid">
+		<div class="container-fluid" style="padding-top: 15px;">
 			<div class="row">
-				<div class="col-md-8 col-md-offset-2 col-sm-10 col-sm-offset-1">
+				<div class="col-md-3 col-md-offset-1">
 					<form>
 						<div class="form-group">
 							<label for="numExercises">Number of Exercises</label>
-							<input type="text" class="form-control" id="numExercises">
+							<input type="text" class="form-control" id="numExercises" value="2">
 						</div>
 						<div class="form-group">
 							<label for="numSets">Number of Sets</label>
-							<input type="text" class="form-control" id="numSets">
+							<input type="text" class="form-control" id="numSets" value="2">
 						</div>
 						<div class="form-group">
 							<button class="btn btn-primary calc">Get Exercises</button>
 						</div>
 					</form>
 				</div>
-			</div>
-			<div class="row">
+				<div class="col-md-8">
+					<div class="row">
 				<div class="col-md-8 col-md-offset-2 col-sm-10 col-sm-offset-1 workoutLength">
 					<h4>
 						Workout length: 
@@ -74,6 +108,8 @@
 			<div class="row">
 				<div class="col-md-8 col-md-offset-2 col-sm-10 col-sm-offset-1">
 					<ul class="list-group hiitList"></ul>
+				</div>
+			</div>
 				</div>
 			</div>
 		</div>
