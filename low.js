@@ -1,0 +1,21 @@
+var lowEx = [
+"squats",
+"spiderman pushups",
+"pushups",
+"squat lunge",
+"side lunge toe touch",
+"sumo kick",
+"jumping jack",
+"up and out jack",
+"plank reach under",
+"push up leg lift",
+"squat hold",
+"plyo side lunge",
+"front kick squat",
+"butt kickers",
+"high knees",
+"downward dog kick ups",
+"lateral hop",
+"lateral hop lunge",
+"split jump"
+];
