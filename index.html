@@ -4,7 +4,7 @@
 		<meta content="IE=edge" http-equiv="X-UA-Compatible">
 		<meta content="width=device-width,initial-scale=1" name="viewport">
 		<!-- jQuery -->
-		<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha256-k2WSCIexGzOj3Euiig+TlR8gA0EmPjuc79OEeY5L45g=" crossorigin="anonymous"></script>
+		<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="" crossorigin="anonymous"></script>
 		
 		<!-- bootstrap -->
 		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
@@ -19,57 +19,135 @@
 		
 		<script>
 		$(document).ready(function(){
-			var stCounter, stCounterVal = 12, timeout, ex;
-			
-			$('.workoutLength').hide();
-			$('.start').hide();
+			var timeout, exArr, box, counter, 
+				stCounterSz = 4, stCounter, actCounterSz = 10, actCounter, restCounterSz = 5, restCounter,
+				mainCounter = 0, exNdx = null;
+						
+			//TODO add inputs for action and rest counters
+			//TODO choose # of exercises per round instead of AB default
 			
 			$('.calc').click(function(){
 				$('.workoutLength').show();
 				$('.start').show();
 				$('.time').text(calcTime($('#numExercises').val(), $('#numSets').val()));	
-				ex = getExercises($('#numExercises').val(), $('#numSets').val());
-				$(ex).each(function(i, r){
-					$(r).each(function(j, e){
-						$('.hiitList').append('<li class="list-group-item">'+ e +'</li>');
-					});
+				exArr = getExercises($('#numExercises').val(), $('#numSets').val());
+				$('.hiitList').html('');
+				$(exArr).each(function(i, e){
+					$('.hiitList').append('<li class="list-group-item">'+ e +'</li>');
 				});
 				return false;
 			});
 			
 			$('.start').click(function(){
 				//10 second starting countdown
-				var box = bootbox.alert({
+				box = bootbox.dialog({
 					message: "Get Ready",
 					closeButton: false,
-					onEscape: false
-					});
-				startCounter= setInterval(function(){
-					stCounterVal--;
-					if(stCounterVal < 11){
-						$('.modal-body').text(stCounterVal);
+					onEscape: false,
+					buttons: {
+						//TODO change to font-awesome or glypycons
+						pause: {
+							label: 'Pause',
+							className: 'btn-danger',
+							callback: function (result) {
+								// pause
+								clearInterval(counter);
+								$('button[data-bb-handler="pause"]').attr('class', 'btn btn-success');
+								$('button[data-bb-handler="pause"]').click(function(){
+									$('button[data-bb-handler="pause"]').attr('class', 'btn btn-danger');
+									$('button[data-bb-handler="pause"]').unbind('click');
+									mainInterval();
+									return false;
+								});
+								return false;
+							}
+						},
+						cancel: {
+							label: 'Quit',
+							className: 'btn-default',
+							callback: function (result) {
+								// cancel
+								clearInterval(counter);
+								mainInterval = 0;
+								exNdx = null;
+							}
+						}
 					}
-					if(stCounterVal == 0){
-						box.modal('hide');
-						clearInterval(startCounter);
+				});
+				stCounter = stCounterSz;
+				counter = setInterval(function(){
+					stCounter--;
+					//get ready
+					if(stCounter > 0){
+						$('.modal-body').text(stCounter);
+					}
+					if(stCounter == 0){
+						mainInterval();
 					}
 				}, 1000);
-					
-				$(ex).each(function(i, e){
-					//TODO highlight exercise
-					
-					//TODO countdown 20 secs of activity 
-					
-					//TODO no highlight while countdown 10 secs of rest
-				});
-				
+				return false;
+			});
+			
+			function mainInterval(){
+				clearInterval(counter);
+				counter = setInterval(function(){
+					if(mainCounter == 0){
+						// reset
+						actCounter = actCounterSz;
+						restCounter = restCounterSz;
+						if(!exNdx){
+							exNdx = 0;
+						}
+					}
+					if(mainCounter < actCounterSz){
+						// active
+						actCounter--;
+						$('.modal-body').html(exArr[exNdx] +'<div class="cTime">'+ (actCounter + 1) +'</div>');
+						nextUp();						
+					}else if(exNdx != (exArr.length -1)){
+						// rest
+						restCounter--;
+						$('.hiitList li.active').removeClass('active');
+						$('.modal-body').html('REST<div class="cTime">'+ (restCounter +1) +'</div>');
+						nextUp();
+					}
+					mainCounter++;
+					if(mainCounter == (actCounterSz + restCounterSz)){
+						mainCounter = 0;
+						exNdx++;
+					}
+					if(exNdx == exArr.length){
+						clearInterval(counter);
+						// display workout complete message
+						$('button[data-bb-handler="pause"]').attr('class', 'btn btn-primary close').attr('data-bb-handler', '').text('Close');
+						$('button[data-bb-handler="cancel"]').remove();
+						$('.modal-body').html('Workout Complete!');
+						mainCounter = 0;
+						exNdx = null;
+					}
+				}, 1000);
+			}
+			
+			function nextUp(){
+				if(exArr[exNdx +1]){
+					$('.modal-body').append('<div class="nextEx">Up next: '+ exArr[exNdx +1] +'</div>');
+				}else{
+					$('.modal-body').append('<div class="nextEx">Last exercise!</div>');
+				}
+			}
+			
+			$(document).on('click', '.close', function(){
+				$(box).modal('hide');
+				return false;
 			});
 		});
 		</script>
 		
 		<style>
-			.modal-footer{display:none;}
-			.modal-body{text-align: center; font-size: 3em;}
+			.modal-footer[data-bb-handler="ok"]{display:none;}
+			.modal-footer{text-align: center;}
+			.modal-body{text-align: center; font-size: 4.5em;}
+			.modal-body .nextEx {font-size: .4em;}
 		</style>
 	</head>
 	<body>
@@ -78,38 +156,38 @@
 				<div class="col-md-3 col-md-offset-1">
 					<form>
 						<div class="form-group">
-							<label for="numExercises">Number of Exercises</label>
-							<input type="text" class="form-control" id="numExercises" value="2">
+							<label for="numExercises">Number of rounds</label>
+							<input type="text" class="form-control" id="numExercises" value="1">
 						</div>
 						<div class="form-group">
-							<label for="numSets">Number of Sets</label>
-							<input type="text" class="form-control" id="numSets" value="2">
+							<label for="numSets">Number of sets for each exercise group</label>
+							<input type="text" class="form-control" id="numSets" value="1">
 						</div>
 						<div class="form-group">
-							<button class="btn btn-primary calc">Get Exercises</button>
+							<button class="btn btn-primary calc">Get exercises</button>
 						</div>
 					</form>
 				</div>
 				<div class="col-md-8">
 					<div class="row">
-				<div class="col-md-8 col-md-offset-2 col-sm-10 col-sm-offset-1 workoutLength">
-					<h4>
-						Workout length: 
-						<span class="text-center time"></span>
-						minutes
-					</h4>
+						<div class="col-md-8 col-md-offset-2 col-sm-10 col-sm-offset-1 workoutLength" style="display:none;">
+							<h4>
+								Workout length: 
+								<span class="text-center time"></span>
+								minutes
+							</h4>
+						</div>
 				</div>
-			</div>
-			<div class="row">
-				<div class="col-md-8 col-md-offset-2 col-sm-10 col-sm-offset-1">
-					<button class="btn btn-success start">Start</button>
+				<div class="row">
+					<div class="col-md-8 col-md-offset-2 col-sm-10 col-sm-offset-1">
+						<button class="btn btn-success start"  style="display:none;">Start</button>
+					</div>
 				</div>
-			</div>
-			<div class="row">
-				<div class="col-md-8 col-md-offset-2 col-sm-10 col-sm-offset-1">
-					<ul class="list-group hiitList"></ul>
+				<div class="row">
+					<div class="col-md-8 col-md-offset-2 col-sm-10 col-sm-offset-1">
+						<ul class="list-group hiitList"></ul>
+					</div>
 				</div>
-			</div>
 				</div>
 			</div>
 		</div>

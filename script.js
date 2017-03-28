@@ -1,7 +1,7 @@
 var low = lowEx.slice(), med = medEx.slice(), high = highEx.slice();
 
 function calcTime(numExercises, numSets){
-	return numExercises * .5 * numSets;
+	return numExercises * numSets * .5;
 }
 
 function getRand(hiNum){
@@ -31,7 +31,7 @@ function getEx(exArr, ex1){
 }
 
 
-function getPair(round){
+function getSet(round){
 	var a, b, res = [];
 	if(round % 2 == 0){
 		//get high & low
@@ -59,11 +59,12 @@ function getPair(round){
 }
 
 function getExercises(numExercises, numSets){
-	var j = 2, res = [], pair;
+	var j = 2, res = [], set;
 	for(var i=0; i< numExercises; i++){
-		pair = getPair(j);
+		set = getSet(j);
 		for(var n=0; n<numSets; n++){
-			res.push(pair);
+			res.push(set[0]);
+			res.push(set[1]);
 		}
 		j++;
 	}
